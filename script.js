@@ -125,8 +125,9 @@ function toonFouten() {
 
     let html = "<h3>Fout beantwoorde woorden:</h3><ul>";
     foutenLijst.forEach(fout => {
-        html += `<li>${fout.woord} (gekozen: ${fout.gekozen}, correct: ${fout.correct})</li>`;
+        html += `<li>${fout.woord}</li>`;
     });
     html += "</ul>";
     foutenContainer.innerHTML = html;
 }
+
