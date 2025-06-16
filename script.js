@@ -4,6 +4,7 @@ let huidigeWoord = "";
 let blanks = [];
 let keuzesIndex = 0;
 let foutenLijst = [];
+let knoppenGebruikt = false; // Nieuwe variabele
 
 document.addEventListener("DOMContentLoaded", () => {
     const uploadInput = document.getElementById("bestand-upload");
@@ -50,6 +51,7 @@ function toonVolgendWoord() {
     document.getElementById("commentaar").innerText = `Hint: ${item.commentaar}`;
     blanks = [];
     keuzesIndex = 0;
+    knoppenGebruikt = false; // Reset de variabele
 
     let temp = huidigeWoord;
     let regex = /(ei|ij)/;
@@ -75,6 +77,8 @@ function toonVolgendWoord() {
 }
 
 function kies(keuze) {
+    if (knoppenGebruikt) return; // Controleer of de knoppen al zijn gebruikt
+
     const juiste = blanks[keuzesIndex];
     const woordEl = document.getElementById("woord-container");
 
@@ -106,6 +110,8 @@ function kies(keuze) {
             correct: juiste
         });
     }
+
+    knoppenGebruikt = true; // Markeer de knoppen als gebruikt
 
     keuzesIndex++;
     if (keuzesIndex >= blanks.length) {
