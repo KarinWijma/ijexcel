@@ -27,10 +27,6 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         reader.readAsArrayBuffer(bestand);
     });
-
-    // Voeg event listeners toe aan de knoppen
-    document.getElementById("ei-knop").addEventListener("click", () => kies("ei"));
-    document.getElementById("ij-knop").addEventListener("click", () => kies("ij"));
 });
 
 function startSpel() {
@@ -76,12 +72,9 @@ function toonVolgendWoord() {
     }
 
     document.getElementById("feedback").innerText = "";
-    setKnoppenIngeschakeld(true);
 }
 
 function kies(keuze) {
-    setKnoppenIngeschakeld(false);
-
     const juiste = blanks[keuzesIndex];
     const woordEl = document.getElementById("woord-container");
 
@@ -121,11 +114,6 @@ function kies(keuze) {
             toonVolgendWoord();
         }, 1500);
     }
-}
-
-function setKnoppenIngeschakeld(ingeschakeld) {
-    document.getElementById("ei-knop").disabled = !ingeschakeld;
-    document.getElementById("ij-knop").disabled = !ingeschakeld;
 }
 
 function toonFouten() {
