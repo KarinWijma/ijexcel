@@ -1,30 +1,123 @@
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>EI of IJ Spel</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Spelling Oefenspel: ei of ij</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        #wordDisplay { font-size: 40px; margin: 20px; }
+        .highlight { color: red; font-weight: bold; }
+        button { font-size: 20px; margin: 10px; padding: 10px 20px; }
+        #hint { font-size: 18px; color: blue; margin: 10px; }
+        #foutWoorden { margin-top: 30px; font-size: 16px; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Vul in: EI of IJ?</h1>
-
-        <!-- Nieuw: Bestand uploaden -->
-        <label for="bestand-upload">Upload je Excel-bestand:</label>
-        <input type="file" id="bestand-upload" accept=".xlsx" />
-
-        <div id="commentaar"></div>
-        <div id="woord-container"></div>
-        <div id="keuzes" style="display: none;">
-            <button onclick="kies('ei')">ei</button>
-            <button onclick="kies('ij')">ij</button>
-        </div>
-        <div id="feedback"></div>
-        <div id="fouten-lijst"></div>
+    <h1>Spelling Oefenspel: ei of ij</h1>
+    <input type="file" id="fileInput" accept=".xlsx" />
+    <div id="hint"></div>
+    <div id="wordDisplay"></div>
+    <div>
+        <button onclick="checkAnswer('ei')">ei</button>
+        <button onclick="checkAnswer('ij')">ij</button>
     </div>
+    <div id="foutWoorden"></div>
 
-    <script src="script.js"></script>
+    <script>
+        let originalWords = [];
+        let todoWords = [];
+        let currentWord = "";
+        let currentCommentaar = "";
+        let missingIndex = -1;
+        let correctDigraph = "";
+        let foutWoorden = [];
+
+        document.getElementById('fileInput').addEventListener('change', handleFile, false);
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(sheet);
+                originalWords = json.filter(row => row.woord).map(row => ({
+                    woord: row.woord,
+                    commentaar: row.commentaar || ""
+                }));
+                shuffleArray(originalWords);
+                todoWords = [...originalWords];
+                showNextMaskedWord();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function findMissingDigraph(word) {
+            for (let i = 0; i < word.length - 1; i++) {
+                const pair = word.substring(i, i + 2).toLowerCase();
+                if (pair === 'ei' || pair === 'ij') {
+                    return [i, pair];
+                }
+            }
+            return [-1, ""];
+        }
+
+        function maskWord(word, index) {
+            if (index === -1) return word;
+            return word.substring(0, index) + '__' + word.substring(index + 2);
+        }
+
+        function showNextMaskedWord() {
+            if (todoWords.length === 0) {
+                document.getElementById('hint').textContent = "";
+                document.getElementById('wordDisplay').textContent = "🎉 Het spel is klaar!";
+                document.getElementById('foutWoorden').innerHTML = foutWoorden.length > 0
+                    ? "<h3>Fout beantwoorde woorden:</h3><ul>" + foutWoorden.map(w => `<li>${w.woord}</li>`).join('') + "</ul>"
+                    : "";
+                return;
+            }
+
+            const current = todoWords.shift();
+            currentWord = current.woord;
+            currentCommentaar = current.commentaar;
+            [missingIndex, correctDigraph] = findMissingDigraph(currentWord);
+
+            document.getElementById('hint').textContent = currentCommentaar ? "Hint: " + currentCommentaar : "";
+            document.getElementById('wordDisplay').innerHTML = maskWord(currentWord, missingIndex);
+        }
+
+        function checkAnswer(guess) {
+            if (guess.toLowerCase() === correctDigraph) {
+                document.getElementById('wordDisplay').textContent = currentWord;
+            } else {
+                displayTextWithHighlight(currentWord, missingIndex);
+                if (!todoWords.some(w => w.woord === currentWord)) {
+                    todoWords.push({woord: currentWord, commentaar: currentCommentaar});
+                }
+                if (!foutWoorden.some(w => w.woord === currentWord)) {
+                    foutWoorden.push({woord: currentWord, commentaar: currentCommentaar});
+                }
+            }
+            setTimeout(showNextMaskedWord, 1500);
+        }
+
+        function displayTextWithHighlight(word, index) {
+            const before = word.substring(0, index);
+            const highlight = word.substring(index, index + 2);
+            const after = word.substring(index + 2);
+            document.getElementById('wordDisplay').innerHTML = `${before}<span class="highlight">${highlight}</span>${after}`;
+        }
+    </script>
 </body>
 </html>
